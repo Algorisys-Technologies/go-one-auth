@@ -1,10 +1,12 @@
 import type { ActionFunction, LoaderFunction } from 'react-router';
-import { useLoaderData, Form } from 'react-router';
+import { useLoaderData, Form, useActionData } from 'react-router';
 import Table from '~/components/table';
 import { API_URL } from '~/config/config';
 import { apiRequest } from '~/common/service-request';
 import { Button } from '~/components/ui/button';
 import { Link } from 'react-router';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface GlobalUser {
   id: string;
@@ -19,14 +21,15 @@ export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const page = parseInt(url.searchParams.get("page") || "0");
   const res = await apiRequest(`${API_URL}/users?page=${page + 1}`, "GET");
-  return { users: res.data, pages: res.pages, currentPage: page };
+  console.log(res)
+  return { users: res.data || [], pages: res.pages, currentPage: page };
 };
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const id = formData.get("id");
   if (request.method === "DELETE" && id) {
-    await apiRequest(`${API_URL}/users/${id}`, "DELETE");
+    return await apiRequest(`${API_URL}/users/${id}`, "DELETE");
   }
   return null;
 };
@@ -37,6 +40,7 @@ const GlobalUsersTable = () => {
     pages: number;
     currentPage: number;
   };
+  const actionData = useActionData()
 
   const headers = [
     { key: "name", label: "Name", search: true },
@@ -65,6 +69,15 @@ const GlobalUsersTable = () => {
     </div>
   );
 
+      useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    } 
+     if (actionData?.success) {
+      toast.success(actionData.message);
+    }
+  }, [actionData]);
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -81,7 +94,7 @@ const GlobalUsersTable = () => {
         displayActions={displayActions}
         search
         tableInfo
-        totalCount={users.length}
+        totalCount={users?.length}
       />
     </div>
   );

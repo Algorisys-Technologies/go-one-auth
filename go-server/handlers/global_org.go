@@ -28,7 +28,7 @@ func CreateOrg(db *pgxpool.Pool) fiber.Handler {
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.Status(201).JSON(org)
+		return c.Status(201).JSON(fiber.Map{"success": true, "org": org, "message": "Org added successfully!"})
 	}
 }
 
@@ -89,7 +89,7 @@ func GetOrgByID(db *pgxpool.Pool) fiber.Handler {
 		if err != nil {
 			return c.Status(404).JSON(fiber.Map{"error": "Org not found"})
 		}
-		return c.JSON(org)
+				return c.JSON(fiber.Map{"success": true, "org": org, "message": "Org fetched successfully!"})
 	}
 }
 
@@ -108,7 +108,7 @@ func UpdateOrg(db *pgxpool.Pool) fiber.Handler {
 			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
 		org.ID = id
-		return c.JSON(org)
+		return c.JSON(fiber.Map{"success": true, "org": org, "message": "Org updated successfully!"})
 	}
 }
 
@@ -119,6 +119,6 @@ func DeleteOrg(db *pgxpool.Pool) fiber.Handler {
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.SendStatus(204)
+		return c.Status(200).JSON(fiber.Map{"success": true, "message": "Org deleted successfully!"})
 	}
 }

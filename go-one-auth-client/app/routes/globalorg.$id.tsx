@@ -2,6 +2,7 @@ import {
   type ActionFunction,
   type LoaderFunction,
   redirect,
+  useNavigate,
 } from "react-router";
 import {
   useLoaderData,
@@ -32,8 +33,8 @@ export const loader: LoaderFunction = async ({ params }) => {
   const { id } = params;
   if (id === "add") return { org: null };
 
-  const org = await apiRequest(`${API_URL}/orgs/${id}`, "GET");
-  return { org };
+  const res = await apiRequest(`${API_URL}/orgs/${id}`, "GET");
+  return { org: res.org };
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -46,28 +47,29 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 
   const isEdit = params.id !== "add";
-  const url = isEdit
-    ? `${API_URL}/orgs/${params.id}`
-    : `${API_URL}/orgs`;
+  const url = isEdit ? `${API_URL}/orgs/${params.id}` : `${API_URL}/orgs`;
 
-  await apiRequest(url, isEdit ? "PUT" : "POST", parse.data);
-
-  return redirect("/globalorgs");
+  const res = await apiRequest(url, isEdit ? "PUT" : "POST", parse.data);
+  console.log(res)
+  return res
 };
 
 const GlobalOrgForm = () => {
   const { org } = useLoaderData() as { org: GlobalOrg | null };
   const nav = useNavigation();
   const isSubmitting = nav.state !== "idle";
-  const actionData = useActionData() as { errors?: Record<string, string[]> };
+  const actionData = useActionData()
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (actionData?.errors) {
-      toast.error("Please correct the highlighted fields.");
-    } else if (isSubmitting && !actionData) {
-      toast.success(org ? "Organization updated" : "Organization created");
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    } 
+     if (actionData?.success) {
+      toast.success(actionData.message);
+      navigate("/globalorgs")
     }
-  }, [actionData, isSubmitting, org]);
+  }, [actionData]);
 
   return (
     <div className="max-w-2xl mx-auto mt-6">
@@ -82,7 +84,9 @@ const GlobalOrgForm = () => {
               <Label htmlFor="name">Name</Label>
               <Input name="name" defaultValue={org?.name || ""} />
               {actionData?.errors?.name && (
-                <p className="text-sm text-red-500">{actionData.errors.name[0]}</p>
+                <p className="text-sm text-red-500">
+                  {actionData.errors.name[0]}
+                </p>
               )}
             </div>
 
@@ -93,12 +97,18 @@ const GlobalOrgForm = () => {
 
             <div>
               <Label htmlFor="propeak_org_id">Propeak Org ID</Label>
-              <Input name="propeak_org_id" defaultValue={org?.propeak_org_id || ""} />
+              <Input
+                name="propeak_org_id"
+                defaultValue={org?.propeak_org_id || ""}
+              />
             </div>
 
             <div>
               <Label htmlFor="skillzengine_org_id">SkillzEngine Org ID</Label>
-              <Input name="skillzengine_org_id" defaultValue={org?.skillzengine_org_id || ""} />
+              <Input
+                name="skillzengine_org_id"
+                defaultValue={org?.skillzengine_org_id || ""}
+              />
             </div>
 
             <div className="pt-4">
