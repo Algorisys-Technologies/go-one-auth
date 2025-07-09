@@ -1,0 +1,10 @@
+.DS_Store
+/go-one-auth-client/node_modules/
+
+# React Router
+/go-one-auth-client/.react-router/
+/go-one-auth-client/build/
+/go-one-auth-client/package-lock.json
+/go-server/.env
+
+
